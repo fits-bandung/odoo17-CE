@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+     <t t-name="dx_pos_receipt_table_design.OrderReceipt" t-inherit="point_of_sale.OrderReceipt"
+        t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('pos-receipt')]" position="replace">
+            <div class="pos-receipt">
+                    <img t-attf-src="/web/image?model=res.company&amp;id={{props.data.headerData.company.id}}&amp;field=logo"
+                         alt="Logo" class="pos-receipt-logo"/>
+                <t t-if="!props.data.headerData.company.logo">
+                    <h2 class="pos-receipt-center-align">
+                        <t t-esc="props.data.headerData.company.name"/>
+                    </h2>
+                </t>
+                <div class="pos-receipt-contact">
+                    <t t-if="props.data.headerData.company.phone">
+                        <div>Tel:<t t-esc="props.data.headerData.company.phone"/></div>
+                    </t>
+                    <t t-if="props.data.headerData.company.vat">
+                        <div><t t-esc="props.data.headerData.company.vat_label"/>:
+                            <t t-esc="props.data.headerData.company.vat"/></div>
+                    </t>
+                    <t t-if="props.data.headerData.header">
+                        <div style="white-space:pre-line"><t t-esc="props.data.headerData.header" /></div>
+                    </t>
+                    <div style="border-style: double;font-size:16px;width:25%;margin: auto;text-align:center;">
+                        <t t-esc="props.data.name.split('-')[2]"/>
+                    </div>
+                    <div style="text-align: center;">--------------------------------</div>
+                    <t t-if="props.data.partner">
+                            Client: <t t-esc="props.data.partner.name"/>
+                        </t>
+                    </div>
+                <br/>
+                <!--                Lines-->
+                <table style="border: 1px solid;width:100%;text-align:center;" class="orderlines">
+                    <tr style="border: 1px solid;">
+                        <td style="border: 1px solid;">Product</td>
+                        <td style="border: 1px solid;">Qty</td>
+                        <td style="border: 1px solid;">Price</td>
+                        <td style="border: 1px solid;">Total</td>
+                    </tr>
+                    <t t-foreach="props.data.orderlines" t-as="line" t-key="line.id">
+                        <tr style="border: 1px solid;">
+                            <td style="border: 1px solid;"><t t-esc="line.productName" />
+                                <br/>
+                                <t t-if="line.unit" style="font-size:8px;" t-esc="line.unit"/>
+                                <t t-if="line.discount != 0">
+                                    <div class="pos-receipt-left-padding" style="font-size:10px;">
+                                        Disc:<t t-esc="line.discount"/>%
+                                    </div>
+                                </t>
+                                <li t-if="line.customerNote"
+                                    class="customer-note w-100 p-2 my-1 rounded text-break text-bg-warning text-warning bg-opacity-25">
+                                    <i class="fa fa-sticky-note me-1" role="img" aria-label="Customer Note"
+                                       title="Customer Note"/>
+                                    <t t-esc="line.customerNote"/>
+                                </li>
+                            </td>
+                            <td style="border: 1px solid;"><t t-esc="line.qty" /> </td>
+                            <td style="border: 1px solid;"><s t-esc="line.oldUnitPrice" t-if="line.oldUnitPrice" />
+                                <t t-esc="line.unitPrice"/></td>
+                            <td style="border: 1px solid;"><t t-esc="line.price" /></td>
+                        </tr>
+                    </t>
+                </table>
+                <br/>
+                <table style="border: 1px solid;width:50%;text-align:center;">
+                    <tr style="border: 1px solid;">
+                        <td style="border: 1px solid;">TOTAL</td>
+                        <td style="border: 1px solid;"><t t-esc="props.formatCurrency(props.data.amount_total)"/></td>
+                    </tr>
+                    <tr style="border: 1px solid;">
+                        <td style="border: 1px solid;">To Pay</td>
+                        <td style="border: 1px solid;"><t t-esc='props.formatCurrency(props.data.amount_total + props.data.rounding_applied)'/></td>
+                    </tr>
+                    <t t-if="props.data.total_discount">
+                        <tr style="border: 1px solid;">
+                            <td style="border: 1px solid;">Discounts</td>
+                            <td style="border: 1px solid;"><t t-esc="env.pos.format_currency(props.data.total_discount)"/></td>
+                        </tr>
+                    </t>
+                    <t t-foreach="props.data.paymentlines" t-as="line" t-key="line.cid">
+                        <tr style="border: 1px solid;">
+                            <td style="border: 1px solid;"><t t-esc="line.name" /></td>
+                            <td style="border: 1px solid;"><t t-esc="props.formatCurrency(line.amount, false)" class="pos-receipt-right-align"/></td>
+                        </tr>
+                    </t>
+                    <t t-if="props.data.tax_details.length > 0">
+                        <tr style="border: 1px solid;">
+                            <td style="font-size:12px;border: 1px solid;">Total Taxes</td>
+                            <td style="border: 1px solid;"><t t-esc="props.formatCurrency(props.data.amount_tax, false)"/></td>
+                        </tr>
+                    </t>
+                    <tr style="border: 1px solid;" class="receipt-change">
+                        <td style="border: 1px solid;">CHANGE</td>
+                        <td style="border: 1px solid;"><t t-esc='props.formatCurrency(props.data.change)'/></td>
+                    </tr>
+                </table>
+                <br/>
+                <div class="before-footer"/>
+                <div t-if="props.data.pos_qr_code">
+                    <br/>
+                        <br/>
+                        <div class="pos-receipt-order-data mb-2">
+                        Scan me to request an invoice for your purchase.
+                    </div>
+                        <img id="posqrcode" t-att-src="props.data.pos_qr_code" class="pos-receipt-logo"/>
+                </div>
+
+                <div t-if="props.data.ticket_code">
+                    <br/>
+                        <br/>
+                        <div class="pos-receipt-order-data">
+                        You can go to <t t-out="props.data.base_url"/>/pos/ticket and use the code below to request an
+                            invoice online
+                    </div>
+                        <div class="pos-receipt-order-data">
+                        Unique Code: <t t-out="props.data.ticket_code"/>
+                    </div>
+                </div>
+                <br/><br/>
+                <!-- Footer -->
+                <div t-if="props.data.footer" class="pos-receipt-center-align">
+                    <t t-out="props.data.footer"/>
+                </div>
+                <div style="text-align: center;">--------------------------------</div>
+                <div class="after-footer">
+                    <t t-foreach="props.data.paymentlines" t-as="line" t-key="line_index">
+                        <t t-if="line.ticket">
+                            <br/>
+                            <div class="pos-payment-terminal-receipt">
+                                <t t-out="line.ticket"/>
+                            </div>
+                        </t>
+                    </t>
+                </div>
+                <br/>
+                <div class="pos-receipt-order-data">
+                    <div><t t-esc="props.data.name" /></div>
+                    <t t-if="props.data.date">
+                        <div><t t-esc="props.data.date" /></div>
+                    </t>
+                    <t t-if="props.data.cashier">
+                        <div class="cashier">
+                            <div>Served by <t t-esc="props.data.cashier"/></div>
+                        </div>
+                    </t>
+                </div>
+
+            </div>
+        </xpath>
+    </t>
+</templates>
